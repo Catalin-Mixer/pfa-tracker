@@ -1,0 +1,46 @@
+{% extends "invoicing_base.html" %}
+{% from "_macros.html" import delete_button, edit_button %}
+{% block title %}Series &amp; VAT – PFA tax tracker{% endblock %}
+{% block section %}
+<div class="grid-side">
+<div>
+{% if inv.series %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Series</th><th>Next invoice</th><th class="n">Issued</th><th>Default</th><th></th></tr></thead>
+  <tbody>
+  {% for s in inv.series %}
+    <tr class="{{ 'editing' if editing and editing.id == s.id }}"><td><b>{{ s.name }}</b></td><td class="d">{{ s.next }}</td><td class="n">{{ s.issued }}</td>
+      <td>{% if s.is_default %}<span class="tag">default</span>{% endif %}</td>
+      <td class="actions">{{ edit_button("/invoicing/series/" ~ s.id ~ "/edit") }}{{ delete_button("/invoicing/series/" ~ s.id ~ "/delete", "series") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="empty">No series yet — add one below.</div>
+{% endif %}
+
+<form class="box" method="post" action="{{ '/invoicing/series/' ~ editing.id ~ '/edit' if editing else '/invoicing/series' }}" style="margin-top:14px" id="series-form">
+  <h3>{{ 'Edit series' if editing else 'Add a series' }}</h3>
+  <div class="row wrap">
+    <div style="flex:1 1 150px"><label for="se-name">Name</label><input id="se-name" name="name" value="{{ form.name or '' }}" placeholder="e.g. PFA" maxlength="10" required></div>
+    <div style="flex:0 0 140px"><label for="se-next">Next number</label><input id="se-next" name="next_number" value="{{ form.next_number or '' }}" placeholder="1" inputmode="numeric"></div>
+    <div style="flex:0 0 auto;align-self:flex-end"><label class="check"><input type="checkbox" name="is_default" value="1" {{ 'checked' if form.is_default }}> Default series</label></div>
+  </div>
+  {% if editing %}<button type="submit">Save changes</button> <a class="button secondary" href="/invoicing/series">Cancel</a>{% else %}<button type="submit">Add series</button>{% endif %}
+  <div class="small muted" style="margin-top:6px">Invoices are numbered &lt;series&gt;-&lt;number&gt;, e.g. PFA-0001; each invoice issued moves the next number up by one. The name is letters and digits, starting with a letter. The default series is chosen first on a new invoice.</div>
+</form>
+</div>
+
+{% set vat = vat_form or inv.settings %}
+<form class="box" method="post" action="/invoicing/vat" id="vat-form">
+  <h3>VAT and payment term</h3>
+  <label class="check"><input type="checkbox" name="vat_payer" value="1" {{ 'checked' if vat.vat_payer }}> VAT payer (plătitor de TVA)</label>
+  <div class="row">
+    <div><label for="vat-rate">VAT rate (%)</label><input id="vat-rate" name="vat_rate" value="{{ vat.vat_rate }}" inputmode="decimal"></div>
+    <div><label for="vat-days">Payment term (days)</label><input id="vat-days" name="due_days" value="{{ vat.due_days }}" inputmode="numeric"></div>
+  </div>
+  <button type="submit">Save VAT settings</button>
+  <div class="small muted" style="margin-top:6px">The VAT rate is added to invoices only when you are a VAT payer; Income always gets the amount without VAT. The payment term sets the due date suggested on a new invoice (0 = none).</div>
+</form>
+</div>
+{% endblock %}

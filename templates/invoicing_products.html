@@ -1,0 +1,37 @@
+{% extends "invoicing_base.html" %}
+{% from "_macros.html" import delete_button, edit_button %}
+{% block title %}Products &amp; services – PFA tax tracker{% endblock %}
+{% block section %}
+{% if inv.products %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Name</th><th>Description</th><th>Unit</th><th class="n">Price per unit</th><th>Currency</th><th></th></tr></thead>
+  <tbody>
+  {% for p in inv.products %}
+    <tr class="{{ 'editing' if editing and editing.id == p.id }}"><td><b>{{ p.name }}</b></td><td class="small muted pre">{{ p.description }}</td>
+      <td>{{ p.unit_label }}</td><td class="n">{{ p.price_display }}</td><td>{{ p.currency }}</td>
+      <td class="actions">{{ edit_button("/invoicing/products/" ~ p.id ~ "/edit") }}{{ delete_button("/invoicing/products/" ~ p.id ~ "/delete", "product or service") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="empty">No products or services yet — add one below.</div>
+{% endif %}
+
+<form class="box" method="post" action="{{ '/invoicing/products/' ~ editing.id ~ '/edit' if editing else '/invoicing/products' }}" style="margin-top:14px" id="product-form">
+  <h3>{{ 'Edit product or service' if editing else 'Add a product or service' }}</h3>
+  <div class="row wrap">
+    <div style="flex:2 1 260px"><label for="pr-name">Name</label><input id="pr-name" name="name" value="{{ form.name or '' }}" placeholder="e.g. Software development" required></div>
+    <div style="flex:0 0 190px"><label for="pr-unit">Unit</label><select id="pr-unit" name="unit">
+      {% for key, label in inv.units.items() %}<option value="{{ key }}" {{ 'selected' if form.unit == key }}>{{ label }}</option>{% endfor %}
+    </select></div>
+    <div style="flex:0 0 150px"><label for="pr-price">Price per unit</label><input id="pr-price" name="unit_price" value="{{ form.unit_price or '' }}" placeholder="150,00" inputmode="decimal" required></div>
+    <div style="flex:0 0 100px"><label for="pr-cur">Currency</label><select id="pr-cur" name="currency">
+      {% for c in inv.currencies %}<option value="{{ c }}" {{ 'selected' if (form.currency or 'RON') == c }}>{{ c }}</option>{% endfor %}
+    </select></div>
+  </div>
+  <label for="pr-desc">Description <span class="muted">(optional, printed under the name on the invoice)</span></label>
+  <textarea id="pr-desc" name="description" rows="2">{{ form.description or '' }}</textarea>
+  {% if editing %}<button type="submit">Save changes</button> <a class="button secondary" href="/invoicing/products">Cancel</a>{% else %}<button type="submit">Add product or service</button>{% endif %}
+  <div class="small muted" style="margin-top:6px">Prices as 1.234,56 or 1234.56. On an invoice the price can still be changed line by line. Changes here do not change invoices already issued.</div>
+</form>
+{% endblock %}

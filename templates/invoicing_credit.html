@@ -1,0 +1,72 @@
+{% extends "invoicing_base.html" %}
+{% block title %}Credit note for {{ cn.full_number }} – PFA tax tracker{% endblock %}
+{% block section %}
+{% if cn.firm_problems %}
+<div class="msg err" id="firm-problems">Credit notes cannot be issued yet: {{ cn.firm_problems|join('; ') }}. <a href="/settings">Open Settings</a></div>
+{% endif %}
+
+{% set ns = namespace(values={}) %}
+{% for l in totals.lines %}{% set _ = ns.values.update({l.line: l.value_display ~ ' ' ~ totals.currency}) %}{% endfor %}
+
+<form class="box" method="post" action="/invoicing/issued/{{ cn.id }}/credit" id="credit-note" data-totals="/invoicing/issued/{{ cn.id }}/credit/totals">
+  <input type="hidden" name="token" value="{{ form.token or '' }}">
+  <h3>Credit note for invoice {{ cn.full_number }} <span class="muted small" id="cn-next">{% if totals.next_number %}· this will be {{ totals.next_number }}{% endif %}</span></h3>
+  <div class="small muted" id="cn-invoice">Invoice {{ cn.full_number }} of {{ cn.date }} · {{ cn.client }} · {{ cn.total_display }} {{ cn.currency }}{% if cn.credited_by %} · credited so far by {{ cn.credited_by|join(', ') }}{% endif %}</div>
+  <div class="row wrap bottom" style="margin-top:10px">
+    <div style="flex:0 0 200px"><label for="cn-series">Series</label>
+      <select id="cn-series" name="series_id">
+        <option value="">— choose a series —</option>
+        {% set known = namespace(found=false) %}
+        {% for s in cn.series %}<option value="{{ s.id }}" {% if form.series_id == s.id|string %}selected{% set known.found = true %}{% endif %}>{{ s.name }} (next {{ s.next }})</option>{% endfor %}
+        {% if form.series_id and not known.found %}<option value="{{ form.series_id }}" data-gone="1" selected>(deleted from the list — choose another)</option>{% endif %}
+      </select>
+    </div>
+    <div style="flex:0 0 175px"><label for="cn-date">Credit note date</label><input id="cn-date" type="date" name="date" value="{{ form.date or '' }}" min="{{ cn.date }}" max="{{ cn.today }}" required></div>
+    <div style="flex:0 0 205px"><label for="cn-refund">Date of the refund <span class="muted">(optional)</span></label><input id="cn-refund" type="date" name="payment_date" value="{{ form.payment_date or '' }}" min="{{ form.date or cn.date }}" max="{{ cn.today }}"></div>
+  </div>
+
+  <h3 style="margin-top:16px">Lines to credit</h3>
+  <div class="table-wrap"><table class="lines">
+    <thead><tr><th>#</th><th class="prod">Product or service</th><th>Unit</th><th class="n">Price per unit</th><th class="n">Invoiced</th><th class="n">Credited</th><th class="n">Left</th><th class="n">Quantity to credit</th><th class="n">Value</th></tr></thead>
+    <tbody id="cn-lines">
+    {% for l in cn.lines %}
+      <tr data-line="{{ l.line }}">
+        <td class="muted num">{{ l.line }}</td>
+        <td class="prod">{{ l.name }}</td>
+        <td>{{ l.unit_label }}</td>
+        <td class="n">{{ l.price_display }}</td>
+        <td class="n">{{ l.quantity_display }}</td>
+        <td class="n muted">{{ l.credited_display }}</td>
+        <td class="n left">{{ l.left_display }}</td>
+        <td class="n">{% if l.left_quantity != "0" %}<input name="quantity_{{ l.line }}" value="{{ quantities.get(l.line|string, '') }}" data-left="{{ l.left_display }}" placeholder="0" inputmode="decimal" aria-label="Quantity to credit, line {{ l.line }}">{% else %}<span class="muted">fully credited</span>{% endif %}</td>
+        <td class="n value">{{ ns.values.get(l.line, '') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <button type="submit" name="action" value="all" class="secondary" id="cn-all" style="margin-top:8px">Credit all</button>
+  <div class="small muted" style="margin-top:6px">Quantity to credit: at most what is left of the line; empty means none of it. A comma is the decimal mark (1,5 = one and a half). Each line is credited at its price on the invoice, with the invoice's VAT. <i>Credit all</i> fills in everything that is left.</div>
+
+  <div class="grid-side" style="margin-top:14px">
+    <div><label for="cn-reason">Reason <span class="muted">(optional, printed on the credit note)</span></label><textarea id="cn-reason" name="reason" rows="3" maxlength="500">{{ form.reason or '' }}</textarea></div>
+    <div class="totals" id="cn-totals">
+      <table>
+        {% if cn.vat_payer %}
+        <tr><td>Total without VAT</td><td class="n" id="cn-subtotal">{{ totals.subtotal }} {{ totals.currency }}</td></tr>
+        <tr><td>VAT {{ cn.vat_rate }}%</td><td class="n" id="cn-vat">{{ totals.vat }} {{ totals.currency }}</td></tr>
+        {% endif %}
+        <tr class="grand"><td>Total</td><td class="n" id="cn-total">{{ totals.total }} {{ totals.currency }}</td></tr>
+      </table>
+      <div class="small {{ 'warn' if totals.error else 'muted' }}" id="cn-problems" style="margin-top:6px">{% if totals.error %}Still needed before issuing: {{ totals.error }}.{% else %}Ready to be issued.{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="inline" style="margin-top:12px">
+    <button type="submit" name="action" value="issue" id="cn-issue">Issue credit note and add to Income</button>
+    <noscript><button type="submit" name="action" value="totals" class="secondary">Update totals</button></noscript>
+    <a class="button secondary" href="/invoicing/issued">Cancel</a>
+  </div>
+  <div class="small muted" style="margin-top:6px">Issuing gives the credit note the next number of its series, saves its PDF and adds it to Income as a negative amount without VAT, with the PDF as proof. It counts in the year of the date of the refund, or of its own date.</div>
+</form>
+<script src="/static/invoicing.js" defer></script>
+{% endblock %}

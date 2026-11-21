@@ -1,0 +1,31 @@
+{% macro page_head(title, page, year, years) %}
+<div class="page-head">
+  <h2>{{ title }}</h2>
+  <form class="years" method="post" action="/year">
+    <input type="hidden" name="page" value="{{ page }}">
+    {% if years|length > 6 %}
+    <label for="year-select">Year</label>
+    <select id="year-select" name="year" onchange="this.form.submit()">
+      {% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}
+    </select>
+    <noscript><button type="submit">Go</button></noscript>
+    {% else %}
+    <span>Year</span>
+    {% for y in years %}<button type="submit" name="year" value="{{ y }}" class="pill {{ 'on' if y == year }}">{{ y }}</button>{% endfor %}
+    {% endif %}
+  </form>
+</div>
+{% endmacro %}
+
+{% macro delete_button(action, what, note="") %}
+{% if note %}<form method="post" action="{{ action }}" onsubmit='return confirm({{ ("Delete this " ~ what ~ "? " ~ note)|tojson }})'><button class="danger" type="submit">Delete</button></form>
+{% else %}<form method="post" action="{{ action }}" onsubmit="return confirm('Delete this {{ what }}?')"><button class="danger" type="submit">Delete</button></form>{% endif %}
+{% endmacro %}
+
+{% macro edit_button(url) %}
+<a class="button secondary" href="{{ url }}">Edit</a>
+{% endmacro %}
+
+{% macro attachment_link(url, stored, table) %}
+{% if stored %}<a href="{{ url }}" title="{{ download_name(table, stored) }}">📎</a>{% endif %}
+{% endmacro %}

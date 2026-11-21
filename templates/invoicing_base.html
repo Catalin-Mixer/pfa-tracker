@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Invoicing – PFA tax tracker{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Invoicing</h2></div>
+<nav class="subtabs" aria-label="Invoicing sections">
+  <a href="/invoicing" class="{{ 'on' if section == 'new' }}">New invoice</a>
+  <a href="/invoicing/issued" class="{{ 'on' if section == 'issued' }}">Issued invoices <span class="count">{{ inv.issued|length }}</span></a>
+  <a href="/invoicing/clients" class="{{ 'on' if section == 'clients' }}">Clients <span class="count">{{ inv.clients|length }}</span></a>
+  <a href="/invoicing/products" class="{{ 'on' if section == 'products' }}">Products &amp; services <span class="count">{{ inv.products|length }}</span></a>
+  <a href="/invoicing/series" class="{{ 'on' if section == 'series' }}">Series &amp; VAT</a>
+</nav>
+{% block section %}{% endblock %}
+{% endblock %}

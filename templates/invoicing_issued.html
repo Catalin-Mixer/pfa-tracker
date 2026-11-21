@@ -1,0 +1,32 @@
+{% extends "invoicing_base.html" %}
+{% block title %}Issued invoices – PFA tax tracker{% endblock %}
+{% block section %}
+{% if issued %}
+<div class="box done" id="just-issued">
+  <div><b>{{ 'Credit note' if issued.kind == 'credit_note' else 'Invoice' }} {{ issued.full_number }}</b>{% if issued.credits_number %} · reverses {{ issued.credits_number }}{% endif %} · {{ issued.client }} · {{ issued.total_display }} {{ issued.currency }}</div>
+  <div class="inline" style="margin-top:8px">
+    <a class="button secondary" href="/invoicing/issued/{{ issued.id }}/pdf">Download PDF</a>
+    {% if issued.in_income %}
+    <form class="inline-form" method="post" action="/year"><input type="hidden" name="page" value="income"><button class="secondary" type="submit" name="year" value="{{ issued.income_year }}">Show in Income {{ issued.income_year }}</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% if inv.issued %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Number</th><th>Invoice date</th><th>Due date</th><th>Client</th><th class="n">Total</th><th>Currency</th><th>In Income</th><th>Credit</th><th></th></tr></thead>
+  <tbody>
+  {% for i in inv.issued %}
+    <tr class="{{ 'gone' if not i.in_income }}"><td class="d"><b>{{ i.full_number }}</b></td><td class="d">{{ i.date }}</td><td class="d muted">{{ i.due_date }}</td><td>{{ i.client }}</td>
+      <td class="n">{{ i.total_display }}</td><td>{{ i.currency }}</td>
+      <td>{% if i.in_income %}<form class="inline-form" method="post" action="/year"><input type="hidden" name="page" value="income"><button class="secondary" type="submit" name="year" value="{{ i.income_year }}" title="Show in Income {{ i.income_year }}">yes · {{ i.income_year }}</button></form>{% else %}<span class="warn" title="Deleted from Income; its number is not given out again">no — deleted from Income</span>{% endif %}</td>
+      <td class="small credit-info">{{ i.credit_info }}</td>
+      <td class="actions"><a class="button secondary" href="/invoicing/issued/{{ i.id }}/pdf" title="Download the PDF of {{ i.full_number }}">PDF</a>{% if i.can_credit %} <a class="button secondary" href="/invoicing/issued/{{ i.id }}/credit" title="Credit all or part of {{ i.full_number }}">Credit note</a>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="small muted">The PDF is printed again from what was recorded when the invoice was issued, so later changes to a client, product or your firm do not change it. An invoice deleted from Income stays here, marked “no — deleted from Income”, and its number is not given out again; its PDF can still be downloaded. <i>Credit note</i> reverses all or part of an invoice; an invoice deleted from Income or fully credited has no such button.</p>
+{% else %}
+<div class="empty">No invoices issued yet — issue one under <a href="/invoicing">New invoice</a>.</div>
+{% endif %}
+{% endblock %}
