@@ -1,0 +1,35 @@
+{
+  "firm": {
+    "name": "",
+    "cui": "",
+    "caen_code": ""
+  },
+  "years": {
+    "2025": {
+      "minimum_wage": 4050,
+      "cas_rate": 0.25,
+      "cas_low_wages": 12,
+      "cas_high_wages": 24,
+      "cass_rate": 0.1,
+      "cass_floor_wages": 6,
+      "cass_ceiling_wages": 60,
+      "income_tax_rate": 0.1,
+      "has_salary": false,
+      "checked": false,
+      "note": "Minimum wage 4050 RON from 1 Jan 2025 (HG 1506/2024). CASS floor 6, ceiling 60 minimum wages."
+    },
+    "2026": {
+      "minimum_wage": 4050,
+      "cas_rate": 0.25,
+      "cas_low_wages": 12,
+      "cas_high_wages": 24,
+      "cass_rate": 0.1,
+      "cass_floor_wages": 6,
+      "cass_ceiling_wages": 72,
+      "income_tax_rate": 0.1,
+      "has_salary": false,
+      "checked": false,
+      "note": "To check: minimum wage 4050 until 30 Jun 2026 and 4325 from 1 Jul 2026, so 4050 at the 25 May deadline. CASS ceiling raised from 60 to 72 minimum wages (Law 141/2025)."
+    }
+  }
+}

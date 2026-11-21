@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_head, delete_button, edit_button, attachment_link %}
+{% block title %}Expenses {{ year }} – PFA tax tracker{% endblock %}
+{% block content %}
+{{ page_head("Expenses " ~ year, "expenses", year, years) }}
+
+<div class="top">
+  <div class="card accent"><div class="lbl">Deductible expenses {{ year }}</div><div class="val">{{ current.expenses|money }}</div><div class="sub">RON</div></div>
+  <div class="card"><div class="lbl">Expenses</div><div class="val">{{ current.n_expenses }}</div><div class="sub">in {{ year }}</div></div>
+  <div class="box small muted">Add each deductible expense with the form below. Amounts in another currency are converted to RON with the rate of that day, like invoices.</div>
+</div>
+
+<form class="box" method="post" action="{{ '/expenses/' ~ editing.id ~ '/edit' if editing else '/expenses' }}" enctype="multipart/form-data" style="margin-top:14px" id="expense-form">
+  <h3>{{ 'Edit expense' if editing else 'Add a deductible expense' }}</h3>
+  <div class="row wrap">
+    <div style="flex:0 0 170px"><label for="d">Date</label><input id="d" type="date" name="date" value="{{ form.date or (today if year == today[:4] else '') }}" max="{{ today }}" required></div>
+    <div style="flex:0 0 130px"><label for="a">Amount</label><input id="a" name="amount" value="{{ form.amount or '' }}" placeholder="250,00" required></div>
+    <div style="flex:0 0 95px"><label for="c">Currency</label>
+      <select id="c" name="currency">{% for c in currencies %}<option {{ 'selected' if (form.currency or 'RON') == c }}>{{ c }}</option>{% endfor %}</select></div>
+    <div style="flex:2 1 220px"><label for="desc">Description</label><input id="desc" name="description" value="{{ form.description or '' }}" placeholder="e.g. laptop, accounting fee, internet" required></div>
+    <div style="flex:1 1 150px"><label for="cat">Category <span class="muted">(optional)</span></label><input id="cat" name="category" value="{{ form.category or '' }}" placeholder="e.g. equipment, rent"></div>
+    <div style="flex:1 1 200px"><label for="exp-file">{% if editing and editing.attachment %}Replace the proof <span class="muted">(optional)</span>{% else %}Proof <span class="muted">(optional: PDF or image)</span>{% endif %}</label><input id="exp-file" type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.xml"></div>
+    <div style="flex:0 0 auto;align-self:flex-end">{% if editing %}<button type="submit">Save changes</button> <a class="button secondary" href="/expenses">Cancel</a>{% else %}<button type="submit">Add expense</button>{% endif %}</div>
+  </div>
+  {% if editing and editing.attachment %}<label class="check small" style="margin-top:8px"><input type="checkbox" name="remove_proof" value="1"> Remove the current proof ({{ download_name("expenses", editing.attachment) }})</label>{% endif %}
+</form>
+
+<h3>Expenses {{ year }}</h3>
+{% if expenses %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="n">Amount</th><th>Cur.</th><th class="n">Rate</th><th>Rate of</th><th class="n">RON</th><th></th><th></th></tr></thead>
+  <tbody>
+  {% for e in expenses %}
+    <tr class="{{ 'editing' if editing and editing.id == e.id }}"><td class="d">{{ e.date }}</td><td>{{ e.description }}</td><td class="muted">{{ e.category }}</td><td class="n">{{ e.amount|money }}</td><td>{{ e.currency }}</td>
+      <td class="n">{{ e.rate|rate }}</td>
+      <td class="small {{ 'warn' if e.rate_date != e.date }}" {% if e.rate_date != e.date %}title="No rate for {{ e.date }}; the latest earlier rate was used"{% endif %}>{% if e.currency != 'RON' %}{{ e.rate_date }}{% endif %}</td>
+      <td class="n">{{ e.amount_ron|money }}</td>
+      <td>{{ attachment_link("/expenses/" ~ e.id ~ "/attachment", e.attachment, "expenses") }}</td>
+      <td class="actions">{{ edit_button("/expenses/" ~ e.id ~ "/edit") }}{{ delete_button("/expenses/" ~ e.id ~ "/delete", "expense") }}</td></tr>
+  {% endfor %}
+  </tbody>
+  <tfoot><tr><td colspan="7">Total {{ year }}</td><td class="n">{{ current.expenses|money }}</td><td></td><td></td></tr></tfoot>
+</table></div>
+<p class="small muted">Rate = RON per 1 unit of currency. A date in <span class="warn">amber</span> under “Rate of” means there was no rate for the expense day (weekend or holiday), so the latest earlier rate was used. 📎 downloads the proof attached to the expense.</p>
+{% else %}
+<div class="empty">No expenses for {{ year }}.</div>
+{% endif %}
+{% endblock %}

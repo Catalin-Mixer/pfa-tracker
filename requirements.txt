@@ -1,0 +1,17 @@
+# The app (browser version)
+fastapi
+uvicorn
+jinja2
+python-multipart
+openpyxl
+pillow
+pypdf
+defusedxml
+reportlab
+# The desktop app
+PySide6
+# The tests (httpx is what FastAPI's test client needs)
+pytest
+httpx
+# Building the executable (packaging/build_linux.sh, packaging/build_windows.bat)
+pyinstaller

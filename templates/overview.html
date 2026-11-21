@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_head %}
+{% block title %}Overview {{ year }} – PFA tax tracker{% endblock %}
+{% block content %}
+{{ page_head("Overview " ~ year, "overview", year, years) }}
+{% set s = current.settings %}
+{% if current.settings_error %}<div class="msg err">Tax settings: {{ current.settings_error }}. CAS and CASS are not calculated; income tax is shown at 10% of net income.</div>{% endif %}
+{% if s and current.settings_year != year %}<div class="msg err">There are no tax values for {{ year }} in <code>{{ settings_path }}</code>, so the {{ current.settings_year }} values are used. Add a {{ year }} block to the file.</div>{% endif %}
+
+<div class="cards">
+  <div class="card"><div class="lbl">Gross income</div><div class="val">{{ current.income|money }}</div><div class="sub">RON · {{ current.n_invoices }} invoice(s) · <a href="/income">details</a></div></div>
+  <div class="card"><div class="lbl">Deductible expenses</div><div class="val">{{ current.expenses|money }}</div><div class="sub">RON · {{ current.n_expenses }} expense(s) · <a href="/expenses">details</a></div></div>
+  <div class="card"><div class="lbl">Net income</div><div class="val">{{ current.net|money }}</div><div class="sub">RON · income − expenses</div></div>
+  <div class="card accent"><div class="lbl">Total to pay</div><div class="val">{{ current.total_due|money }}</div><div class="sub">RON · CAS + CASS + income tax (estimate)</div></div>
+</div>
+
+<h3>Taxes and contributions</h3>
+<div class="grid-side">
+  <table>
+    <thead><tr><th></th><th class="n">Amount</th><th class="n">To pay</th></tr></thead>
+    <tbody>
+      <tr><td>Net income</td><td class="n">{{ current.net|money }}</td><td></td></tr>
+      {% if s %}
+      <tr><td>CAS – pension, {{ s.cas_rate|pct }} of the base<div class="small muted">{{ current.cas_note }}</div></td><td class="n muted">base {{ current.cas_base|money }}</td><td class="n">{{ current.cas|money }}</td></tr>
+      <tr><td>CASS – health, {{ s.cass_rate|pct }} of the base<div class="small muted">{{ current.cass_note }}</div></td><td class="n muted">base {{ current.cass_base|money }}</td><td class="n">{{ current.cass|money }}</td></tr>
+      <tr><td>Taxable income<div class="small muted">net income − CAS − CASS, not below 0</div></td><td class="n">{{ current.taxable|money }}</td><td></td></tr>
+      <tr><td>Income tax, {{ s.income_tax_rate|pct }} of taxable income{% if current.tax_exempt_note %}<div class="small warn">Not charged: {{ current.tax_exempt_note }}.</div>{% endif %}</td><td></td><td class="n">{{ current.tax|money }}</td></tr>
+      {% else %}
+      <tr><td>Income tax, 10% of net income</td><td></td><td class="n">{{ current.tax|money }}</td></tr>
+      {% endif %}
+    </tbody>
+    <tfoot><tr><td>Total to pay for {{ year }}</td><td></td><td class="n">{{ current.total_due|money }}</td></tr></tfoot>
+  </table>
+
+  <div class="box small">
+    {% if s %}
+    <h3>Values used{% if current.settings_year != year %} (from {{ current.settings_year }}){% endif %}</h3>
+    <ul class="tight">
+      <li>Minimum wage: {{ s.minimum_wage|money }} RON</li>
+      <li>CAS {{ s.cas_rate|pct }}: base {{ s.cas_low_wages|num }} wages from {{ (s.cas_low_wages * s.minimum_wage)|money }}, {{ s.cas_high_wages|num }} wages from {{ (s.cas_high_wages * s.minimum_wage)|money }}</li>
+      <li>CASS {{ s.cass_rate|pct }}: floor {{ (s.cass_floor_wages * s.minimum_wage)|money }}{% if s.has_salary %} (not applied){% endif %}, ceiling {{ (s.cass_ceiling_wages * s.minimum_wage)|money }}</li>
+      <li>Income tax {{ s.income_tax_rate|pct }}</li>
+      <li>Salaried job in {{ year }}: <b>{{ 'yes' if s.has_salary else 'no' }}</b></li>
+    </ul>
+    {% if not s.checked %}<div class="warn">Not yet marked as checked against an official source.</div>{% endif %}
+    {% if s.note %}<div class="muted">{{ s.note }}</div>{% endif %}
+    {% endif %}
+    <div style="margin-top:8px">Firm and salaried job: <a href="/settings">Settings</a> tab. Minimum wage and thresholds: <code>settings.json</code> (see the README).</div>
+  </div>
+</div>
+<p class="muted small">Estimate only — check the final figures for Declarația unică with your accountant. Special cases (pensioners, people insured elsewhere, opting in to CAS below the threshold) are not handled.</p>
+
+<h3>All years</h3>
+{% if summaries %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Year</th><th class="n">Income</th><th class="n">Expenses</th><th class="n">Net income</th><th class="n">CAS</th><th class="n">CASS</th><th class="n">Taxable</th><th class="n">Income tax</th><th class="n">Total to pay</th></tr></thead>
+  <tbody>
+  {% for y in summaries %}
+    <tr class="{{ 'on' if y.year == year }}"><td><form method="post" action="/year" class="inline-form"><input type="hidden" name="page" value="overview"><button type="submit" name="year" value="{{ y.year }}" class="link-button">{{ y.year }}</button></form>{% if y.settings and y.settings.has_salary %} <span class="small muted">(salaried)</span>{% endif %}</td><td class="n">{{ y.income|money }}</td><td class="n">{{ y.expenses|money }}</td><td class="n">{{ y.net|money }}</td><td class="n">{{ y.cas|money }}</td><td class="n">{{ y.cass|money }}</td><td class="n">{{ y.taxable|money }}</td><td class="n">{{ y.tax|money }}</td><td class="n"><b>{{ y.total_due|money }}</b></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="empty">No data yet. Import invoices on the <a href="/income">Income</a> tab and add expenses on the <a href="/expenses">Expenses</a> tab.</div>
+{% endif %}
+{% endblock %}

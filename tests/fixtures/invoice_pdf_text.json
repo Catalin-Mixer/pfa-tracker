@@ -1,0 +1,356 @@
+{
+ "about": "Invoices and the text their PDF printed before credit notes were added; invoices must keep printing exactly this (tests/test_credit_notes.py).",
+ "invoices": {
+  "ron_full": {
+   "invoice": {
+    "series": "PFA",
+    "series_id": 1,
+    "number": 1,
+    "full_number": "PFA-0001",
+    "client": {
+     "name": "Carpathia SRL",
+     "tax_id": "RO14399840",
+     "reg_number": "J40/1234/2020",
+     "address": "Bd. Unirii 10",
+     "city": "București",
+     "country": "RO",
+     "email": "facturi@carpathia.ro",
+     "phone": "+40721234567"
+    },
+    "client_id": 1,
+    "date": "2025-03-14",
+    "due_date": "2025-03-29",
+    "payment_date": "",
+    "notes": "Mulțumim!\nThank you.",
+    "lines": [
+     {
+      "line": 1,
+      "product_id": 1,
+      "name": "Programare",
+      "description": "Dezvoltare software\nsprint 3",
+      "unit": "hour",
+      "unit_label": "oră / hour",
+      "quantity": "10",
+      "price": "100",
+      "value": "1000",
+      "currency": "RON"
+     },
+     {
+      "line": 2,
+      "product_id": 1,
+      "name": "Support",
+      "description": "",
+      "unit": "month",
+      "unit_label": "lună / month",
+      "quantity": "2.5",
+      "price": "33.3333",
+      "value": "83.33",
+      "currency": "RON"
+     }
+    ],
+    "currency": "RON",
+    "subtotal": "1083.33",
+    "vat_payer": false,
+    "vat_rate": "",
+    "vat": "0",
+    "total": "1083.33",
+    "rate": null,
+    "total_ron": "1083.33",
+    "vat_ron": "0",
+    "seller": {
+     "name": "Test PFA",
+     "cui": "RO14399840",
+     "trade_register": "F22/123/2019",
+     "address": "Str. Științei 1, Iași",
+     "iban": "RO49 AAAA 1B31 0075 9384 0000",
+     "email": "pfa@example.ro",
+     "phone": "+40721234567"
+    },
+    "issued_at": "2025-03-14T10:00:00"
+   },
+   "text": "FACTURĂ / INVOICE\n Seria / Series: PFA   Nr. / No.: 0001\n Data / Date: 14.03.2025\n Scadență / Due date: 29.03.2025\nFURNIZOR / SUPPLIER\nTest PFA\nCUI / Tax ID: RO14399840\nNr. Reg. Com. / Trade register: F22/123/2019\nAdresa / Address: Str. Științei 1, Iași\nIBAN: RO49 AAAA 1B31 0075 9384 0000\nEmail: pfa@example.ro\nTelefon / Phone: +40721234567\nNeplătitor de TVA — regim special de scutire pentru\nîntreprinderile mici, art. 310 Cod fiscal / Not registered for\nVAT (small business exemption)\nCLIENT / CUSTOMER\nCarpathia SRL\nCUI / Tax ID: RO14399840\nNr. Reg. Com. / Trade register: J40/1234/2020\nAdresa / Address: Bd. Unirii 10, București, Romania\nEmail: facturi@carpathia.ro\nTelefon / Phone: +40721234567\nNr.\nDenumire / Description\nU.M. / Unit\n Cant. /\n Qty\n Preț unitar /\n Unit price\n (RON)\n Valoare /\n Amount\n (RON)\n1\nProgramare\nDezvoltare software\nsprint 3\noră / hour\n 10\n 100,00\n 1.000,00\n2\nSupport\nlună /\nmonth\n 2,5\n 33,3333\n 83,33\n Total fără TVA / Subtotal\n 1.083,33 RON\n Total de plată / Total due\n 1.083,33 RON\nMențiuni / Notes\nMulțumim!\nThank you.\nPlata în contul / Payment to: RO49 AAAA 1B31 0075 9384 0000\nFactura circulă fără semnătură și ștampilă. / Valid without signature and stamp.\n"
+  },
+  "ron_bare": {
+   "invoice": {
+    "series": "PFA",
+    "series_id": 1,
+    "number": 1,
+    "full_number": "PFA-0001",
+    "client": {
+     "name": "Ion Popescu",
+     "tax_id": "1800101221144",
+     "reg_number": "",
+     "address": "Bd. Unirii 10",
+     "city": "București",
+     "country": "RO",
+     "email": "facturi@carpathia.ro",
+     "phone": ""
+    },
+    "client_id": 1,
+    "date": "2025-03-14",
+    "due_date": "",
+    "payment_date": "",
+    "notes": "",
+    "lines": [
+     {
+      "line": 1,
+      "product_id": 1,
+      "name": "Programare",
+      "description": "Dezvoltare software\nsprint 3",
+      "unit": "hour",
+      "unit_label": "oră / hour",
+      "quantity": "10",
+      "price": "100",
+      "value": "1000",
+      "currency": "RON"
+     },
+     {
+      "line": 2,
+      "product_id": 1,
+      "name": "Support",
+      "description": "",
+      "unit": "month",
+      "unit_label": "lună / month",
+      "quantity": "2.5",
+      "price": "33.3333",
+      "value": "83.33",
+      "currency": "RON"
+     }
+    ],
+    "currency": "RON",
+    "subtotal": "1083.33",
+    "vat_payer": false,
+    "vat_rate": "",
+    "vat": "0",
+    "total": "1083.33",
+    "rate": null,
+    "total_ron": "1083.33",
+    "vat_ron": "0",
+    "seller": {
+     "name": "Test PFA",
+     "cui": "RO14399840",
+     "trade_register": "",
+     "address": "Str. Științei 1, Iași",
+     "iban": "",
+     "email": "",
+     "phone": ""
+    },
+    "issued_at": "2025-03-14T10:00:00"
+   },
+   "text": "FACTURĂ / INVOICE\n Seria / Series: PFA   Nr. / No.: 0001\n Data / Date: 14.03.2025\nFURNIZOR / SUPPLIER\nTest PFA\nCUI / Tax ID: RO14399840\nAdresa / Address: Str. Științei 1, Iași\nNeplătitor de TVA — regim special de scutire pentru\nîntreprinderile mici, art. 310 Cod fiscal / Not registered for\nVAT (small business exemption)\nCLIENT / CUSTOMER\nIon Popescu\nCNP / Personal ID: 1800101221144\nAdresa / Address: Bd. Unirii 10, București, Romania\nEmail: facturi@carpathia.ro\nNr.\nDenumire / Description\nU.M. / Unit\n Cant. /\n Qty\n Preț unitar /\n Unit price\n (RON)\n Valoare /\n Amount\n (RON)\n1\nProgramare\nDezvoltare software\nsprint 3\noră / hour\n 10\n 100,00\n 1.000,00\n2\nSupport\nlună /\nmonth\n 2,5\n 33,3333\n 83,33\n Total fără TVA / Subtotal\n 1.083,33 RON\n Total de plată / Total due\n 1.083,33 RON\nFactura circulă fără semnătură și ștampilă. / Valid without signature and stamp.\n"
+  },
+  "ron_vat": {
+   "invoice": {
+    "series": "PFA",
+    "series_id": 1,
+    "number": 1,
+    "full_number": "PFA-0001",
+    "client": {
+     "name": "Carpathia SRL",
+     "tax_id": "RO14399840",
+     "reg_number": "J40/1234/2020",
+     "address": "Bd. Unirii 10",
+     "city": "București",
+     "country": "RO",
+     "email": "facturi@carpathia.ro",
+     "phone": "+40721234567"
+    },
+    "client_id": 1,
+    "date": "2025-03-14",
+    "due_date": "2025-03-29",
+    "payment_date": "",
+    "notes": "Mulțumim!\nThank you.",
+    "lines": [
+     {
+      "line": 1,
+      "product_id": 1,
+      "name": "Programare",
+      "description": "Dezvoltare software\nsprint 3",
+      "unit": "hour",
+      "unit_label": "oră / hour",
+      "quantity": "10",
+      "price": "100",
+      "value": "1000",
+      "currency": "RON"
+     },
+     {
+      "line": 2,
+      "product_id": 1,
+      "name": "Support",
+      "description": "",
+      "unit": "month",
+      "unit_label": "lună / month",
+      "quantity": "2.5",
+      "price": "33.3333",
+      "value": "83.33",
+      "currency": "RON"
+     }
+    ],
+    "currency": "RON",
+    "subtotal": "1083.33",
+    "vat_payer": true,
+    "vat_rate": "21",
+    "vat": "227.5",
+    "total": "1310.83",
+    "rate": null,
+    "total_ron": "1310.83",
+    "vat_ron": "227.5",
+    "seller": {
+     "name": "Test PFA",
+     "cui": "RO14399840",
+     "trade_register": "F22/123/2019",
+     "address": "Str. Științei 1, Iași",
+     "iban": "RO49 AAAA 1B31 0075 9384 0000",
+     "email": "pfa@example.ro",
+     "phone": "+40721234567"
+    },
+    "issued_at": "2025-03-14T10:00:00"
+   },
+   "text": "FACTURĂ / INVOICE\n Seria / Series: PFA   Nr. / No.: 0001\n Data / Date: 14.03.2025\n Scadență / Due date: 29.03.2025\nFURNIZOR / SUPPLIER\nTest PFA\nCUI / Tax ID: RO14399840\nNr. Reg. Com. / Trade register: F22/123/2019\nAdresa / Address: Str. Științei 1, Iași\nIBAN: RO49 AAAA 1B31 0075 9384 0000\nEmail: pfa@example.ro\nTelefon / Phone: +40721234567\nCLIENT / CUSTOMER\nCarpathia SRL\nCUI / Tax ID: RO14399840\nNr. Reg. Com. / Trade register: J40/1234/2020\nAdresa / Address: Bd. Unirii 10, București, Romania\nEmail: facturi@carpathia.ro\nTelefon / Phone: +40721234567\nNr.\nDenumire / Description\nU.M. / Unit\n Cant. /\n Qty\n Preț unitar /\n Unit price\n (RON)\n Valoare /\n Amount\n (RON)\n1\nProgramare\nDezvoltare software\nsprint 3\noră / hour\n 10\n 100,00\n 1.000,00\n2\nSupport\nlună /\nmonth\n 2,5\n 33,3333\n 83,33\n Total fără TVA / Subtotal\n 1.083,33 RON\n TVA / VAT 21%\n 227,50 RON\n Total de plată / Total due\n 1.310,83 RON\nMențiuni / Notes\nMulțumim!\nThank you.\nPlata în contul / Payment to: RO49 AAAA 1B31 0075 9384 0000\nFactura circulă fără semnătură și ștampilă. / Valid without signature and stamp.\n"
+  },
+  "eur_vat": {
+   "invoice": {
+    "series": "PFA",
+    "series_id": 1,
+    "number": 1,
+    "full_number": "PFA-0001",
+    "client": {
+     "name": "Nordwind GmbH",
+     "tax_id": "DE123456789",
+     "reg_number": "",
+     "address": "Hafenstraße 5",
+     "city": "Hamburg",
+     "country": "DE",
+     "email": "ap@nordwind.de",
+     "phone": ""
+    },
+    "client_id": 1,
+    "date": "2025-03-14",
+    "due_date": "2025-03-29",
+    "payment_date": "",
+    "notes": "Mulțumim!\nThank you.",
+    "lines": [
+     {
+      "line": 1,
+      "product_id": 1,
+      "name": "Programare",
+      "description": "Dezvoltare software\nsprint 3",
+      "unit": "hour",
+      "unit_label": "oră / hour",
+      "quantity": "10",
+      "price": "100",
+      "value": "1000",
+      "currency": "RON"
+     },
+     {
+      "line": 2,
+      "product_id": 1,
+      "name": "Support",
+      "description": "",
+      "unit": "month",
+      "unit_label": "lună / month",
+      "quantity": "2.5",
+      "price": "33.3333",
+      "value": "83.33",
+      "currency": "RON"
+     }
+    ],
+    "currency": "EUR",
+    "subtotal": "1083.33",
+    "vat_payer": true,
+    "vat_rate": "19.5",
+    "vat": "211.25",
+    "total": "1294.58",
+    "rate": {
+     "rate": "4.9712",
+     "rate_date": "2025-03-14"
+    },
+    "total_ron": "6435.62",
+    "vat_ron": "1050.17",
+    "seller": {
+     "name": "Test PFA",
+     "cui": "RO14399840",
+     "trade_register": "F22/123/2019",
+     "address": "Str. Științei 1, Iași",
+     "iban": "RO49 AAAA 1B31 0075 9384 0000",
+     "email": "pfa@example.ro",
+     "phone": "+40721234567"
+    },
+    "issued_at": "2025-03-14T10:00:00"
+   },
+   "text": "FACTURĂ / INVOICE\n Seria / Series: PFA   Nr. / No.: 0001\n Data / Date: 14.03.2025\n Scadență / Due date: 29.03.2025\nFURNIZOR / SUPPLIER\nTest PFA\nCUI / Tax ID: RO14399840\nNr. Reg. Com. / Trade register: F22/123/2019\nAdresa / Address: Str. Științei 1, Iași\nIBAN: RO49 AAAA 1B31 0075 9384 0000\nEmail: pfa@example.ro\nTelefon / Phone: +40721234567\nCLIENT / CUSTOMER\nNordwind GmbH\nCUI / Tax ID: DE123456789\nAdresa / Address: Hafenstraße 5, Hamburg, Germany\nEmail: ap@nordwind.de\nNr.\nDenumire / Description\nU.M. / Unit\n Cant. /\n Qty\n Preț unitar /\n Unit price\n (EUR)\n Valoare /\n Amount\n (EUR)\n1\nProgramare\nDezvoltare software\nsprint 3\noră / hour\n 10\n 100,00\n 1.000,00\n2\nSupport\nlună /\nmonth\n 2,5\n 33,3333\n 83,33\n Total fără TVA / Subtotal\n 1.083,33 EUR\n TVA / VAT 19,5%\n 211,25 EUR\n Total de plată / Total due\n 1.294,58 EUR\nCurs BNR / Exchange rate (14.03.2025): 1 EUR = 4,9712 RON  ·  TVA / VAT: 1.050,17 RON  ·  Total: 6.435,62 RON\nMențiuni / Notes\nMulțumim!\nThank you.\nPlata în contul / Payment to: RO49 AAAA 1B31 0075 9384 0000\nFactura circulă fără semnătură și ștampilă. / Valid without signature and stamp.\n"
+  },
+  "eur_novat": {
+   "invoice": {
+    "series": "PFA",
+    "series_id": 1,
+    "number": 123,
+    "full_number": "PFA-0123",
+    "client": {
+     "name": "Nordwind GmbH",
+     "tax_id": "DE123456789",
+     "reg_number": "",
+     "address": "Hafenstraße 5",
+     "city": "Hamburg",
+     "country": "DE",
+     "email": "ap@nordwind.de",
+     "phone": ""
+    },
+    "client_id": 1,
+    "date": "2025-03-14",
+    "due_date": "2025-03-29",
+    "payment_date": "",
+    "notes": "Mulțumim!\nThank you.",
+    "lines": [
+     {
+      "line": 1,
+      "product_id": 1,
+      "name": "Programare",
+      "description": "Dezvoltare software\nsprint 3",
+      "unit": "hour",
+      "unit_label": "oră / hour",
+      "quantity": "10",
+      "price": "100",
+      "value": "1000",
+      "currency": "RON"
+     },
+     {
+      "line": 2,
+      "product_id": 1,
+      "name": "Support",
+      "description": "",
+      "unit": "month",
+      "unit_label": "lună / month",
+      "quantity": "2.5",
+      "price": "33.3333",
+      "value": "83.33",
+      "currency": "RON"
+     }
+    ],
+    "currency": "EUR",
+    "subtotal": "1083.33",
+    "vat_payer": false,
+    "vat_rate": "",
+    "vat": "0",
+    "total": "1083.33",
+    "rate": {
+     "rate": "4.5000",
+     "rate_date": "2025-03-14"
+    },
+    "total_ron": "4874.99",
+    "vat_ron": "0",
+    "seller": {
+     "name": "Test PFA",
+     "cui": "RO14399840",
+     "trade_register": "F22/123/2019",
+     "address": "Str. Științei 1, Iași",
+     "iban": "RO49 AAAA 1B31 0075 9384 0000",
+     "email": "pfa@example.ro",
+     "phone": "+40721234567"
+    },
+    "issued_at": "2025-03-14T10:00:00"
+   },
+   "text": "FACTURĂ / INVOICE\n Seria / Series: PFA   Nr. / No.: 0123\n Data / Date: 14.03.2025\n Scadență / Due date: 29.03.2025\nFURNIZOR / SUPPLIER\nTest PFA\nCUI / Tax ID: RO14399840\nNr. Reg. Com. / Trade register: F22/123/2019\nAdresa / Address: Str. Științei 1, Iași\nIBAN: RO49 AAAA 1B31 0075 9384 0000\nEmail: pfa@example.ro\nTelefon / Phone: +40721234567\nNeplătitor de TVA — regim special de scutire pentru\nîntreprinderile mici, art. 310 Cod fiscal / Not registered for\nVAT (small business exemption)\nCLIENT / CUSTOMER\nNordwind GmbH\nCUI / Tax ID: DE123456789\nAdresa / Address: Hafenstraße 5, Hamburg, Germany\nEmail: ap@nordwind.de\nNr.\nDenumire / Description\nU.M. / Unit\n Cant. /\n Qty\n Preț unitar /\n Unit price\n (EUR)\n Valoare /\n Amount\n (EUR)\n1\nProgramare\nDezvoltare software\nsprint 3\noră / hour\n 10\n 100,00\n 1.000,00\n2\nSupport\nlună /\nmonth\n 2,5\n 33,3333\n 83,33\n Total fără TVA / Subtotal\n 1.083,33 EUR\n Total de plată / Total due\n 1.083,33 EUR\nCurs BNR / Exchange rate (14.03.2025): 1 EUR = 4,5000 RON  ·  Total: 4.874,99 RON\nMențiuni / Notes\nMulțumim!\nThank you.\nPlata în contul / Payment to: RO49 AAAA 1B31 0075 9384 0000\nFactura circulă fără semnătură și ștampilă. / Valid without signature and stamp.\n"
+  }
+ }
+}

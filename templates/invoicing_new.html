@@ -1,0 +1,102 @@
+{% extends "invoicing_base.html" %}
+{% block title %}New invoice – PFA tax tracker{% endblock %}
+{% block section %}
+{% if issued %}
+<div class="box done" id="just-issued">
+  <div><b>{{ 'Credit note' if issued.kind == 'credit_note' else 'Invoice' }} {{ issued.full_number }}</b> · {{ issued.client }} · {{ issued.total_display }} {{ issued.currency }}</div>
+  <div class="inline" style="margin-top:8px">
+    <a class="button secondary" href="/invoicing/issued/{{ issued.id }}/pdf">Download PDF</a>
+    {% if issued.in_income %}
+    <form class="inline-form" method="post" action="/year"><input type="hidden" name="page" value="income"><button class="secondary" type="submit" name="year" value="{{ issued.income_year }}">Show in Income {{ issued.income_year }}</button></form>
+    {% endif %}
+    <a class="button secondary" href="/invoicing/issued">All issued invoices</a>
+  </div>
+</div>
+{% endif %}
+{% if inv.firm_problems %}
+<div class="msg err" id="firm-problems">Invoices cannot be issued yet: {{ inv.firm_problems|join('; ') }}. <a href="/settings">Open Settings</a></div>
+{% endif %}
+
+{% set ns = namespace(values={}, prices={}) %}
+{% for l in totals.lines %}{% set _ = ns.values.update({l.line: l.value_display ~ ' ' ~ l.currency}) %}{% endfor %}
+{% for p in inv.products %}{% set _ = ns.prices.update({p.id|string: p.price_display}) %}{% endfor %}
+
+<form class="box" method="post" action="/invoicing/issue" id="new-invoice" data-max="{{ inv.max_lines }}">
+  <input type="hidden" name="token" value="{{ form.token or '' }}">
+  <h3>New invoice <span class="muted small" id="ni-next">{% if totals.next_number %}· this will be {{ totals.next_number }}{% endif %}</span></h3>
+  <div class="row wrap bottom">
+    <div style="flex:0 0 200px"><label for="ni-series">Series</label>
+      {% if inv.series %}
+      <select id="ni-series" name="series_id">
+        <option value="">— choose a series —</option>
+        {% set known = namespace(found=false) %}
+        {% for s in inv.series %}<option value="{{ s.id }}" {% if form.series_id == s.id|string %}selected{% set known.found = true %}{% endif %}>{{ s.name }} (next {{ s.next }})</option>{% endfor %}
+        {% if form.series_id and not known.found %}<option value="{{ form.series_id }}" data-gone="1" selected>(deleted from the list — choose another)</option>{% endif %}
+      </select>
+      {% else %}
+      <input type="hidden" name="series_id" value=""><div class="small warn">No series yet — <a href="/invoicing/series">add one under Series &amp; VAT</a>.</div>
+      {% endif %}
+    </div>
+    <div style="flex:2 1 230px"><label for="ni-client">Client</label>
+      {% if inv.clients %}
+      <select id="ni-client" name="client_id">
+        <option value="">— choose a client —</option>
+        {% set known = namespace(found=false) %}
+        {% for c in inv.clients %}<option value="{{ c.id }}" {% if form.client_id == c.id|string %}selected{% set known.found = true %}{% endif %}>{{ c.name }} · {{ c.tax_id }}</option>{% endfor %}
+        {% if form.client_id and not known.found %}<option value="{{ form.client_id }}" data-gone="1" selected>(deleted from the list — choose another)</option>{% endif %}
+      </select>
+      {% else %}
+      <input type="hidden" name="client_id" value=""><div class="small warn">No clients yet — <a href="/invoicing/clients">add one under Clients</a>.</div>
+      {% endif %}
+    </div>
+    <div style="flex:0 0 175px"><label for="ni-date">Invoice date</label><input id="ni-date" type="date" name="date" value="{{ form.date or '' }}" max="{{ inv.today }}" required></div>
+    <div style="flex:0 0 175px"><label for="ni-due">Due date <span class="muted">(optional)</span></label><input id="ni-due" type="date" name="due_date" value="{{ form.due_date or '' }}" min="{{ form.date or '' }}"></div>
+    <div style="flex:0 0 205px"><label for="ni-paid">Date of payment <span class="muted">(optional)</span></label><input id="ni-paid" type="date" name="payment_date" value="{{ form.payment_date or '' }}" min="{{ form.date or '' }}" max="{{ inv.today }}"></div>
+  </div>
+
+  <h3 style="margin-top:16px">Products and services</h3>
+  {% if not inv.products %}<div class="small warn" style="margin-bottom:8px">No products or services yet — <a href="/invoicing/products">add one under Products &amp; services</a>.</div>{% endif %}
+  <div class="table-wrap"><table class="lines">
+    <thead><tr><th>#</th><th class="prod">Product or service</th><th class="n">Quantity</th><th class="n">Price per unit <span class="muted">(optional)</span></th><th class="n">Value</th></tr></thead>
+    <tbody id="ni-lines">
+    {% for line in form.lines %}{% set n = loop.index %}{% set known = namespace(found=false) %}
+      <tr data-line="{{ n }}">
+        <td class="muted num">{{ n }}</td>
+        <td class="prod"><select name="product_id_{{ n }}" aria-label="Product or service, line {{ n }}">
+          <option value="">— choose —</option>
+          {% for p in inv.products %}<option value="{{ p.id }}" data-price="{{ p.price_display }}" {% if line.product_id == p.id|string %}selected{% set known.found = true %}{% endif %}>{{ p.name }} — {{ p.price_display }} {{ p.currency }} / {{ p.unit_label }}</option>{% endfor %}
+          {% if line.product_id and not known.found %}<option value="{{ line.product_id }}" data-gone="1" selected>(deleted from the list — choose another)</option>{% endif %}
+        </select></td>
+        <td class="n"><input name="quantity_{{ n }}" value="{{ line.quantity }}" placeholder="1" inputmode="decimal" aria-label="Quantity, line {{ n }}"></td>
+        <td class="n"><input name="price_{{ n }}" value="{{ line.price }}" placeholder="{{ ns.prices.get(line.product_id, '') }}" inputmode="decimal" aria-label="Price per unit, line {{ n }}"></td>
+        <td class="n value">{{ ns.values.get(n, '') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% if form.lines|length < inv.max_lines %}<button type="submit" name="action" value="more" class="secondary" id="ni-more" style="margin-top:8px">Add a line</button>{% endif %}
+  <div class="small muted" style="margin-top:6px">Quantity: empty means 1; a comma is the decimal mark (1,5 = one and a half). Price per unit: empty means the product's own price. Empty rows are left out. All lines of one invoice must be in the same currency.</div>
+
+  <div class="grid-side" style="margin-top:14px">
+    <div><label for="ni-notes">Notes <span class="muted">(optional, printed on the invoice)</span></label><textarea id="ni-notes" name="notes" rows="3" maxlength="1000">{{ form.notes or '' }}</textarea></div>
+    <div class="totals" id="ni-totals">
+      <table>
+        {% if inv.settings.vat_payer %}
+        <tr><td>Total without VAT</td><td class="n" id="ni-subtotal">{{ (totals.subtotal ~ ' ' ~ totals.currency) if totals.subtotal else '—' }}</td></tr>
+        <tr><td>VAT {{ inv.settings.vat_rate }}%</td><td class="n" id="ni-vat">{{ (totals.vat ~ ' ' ~ totals.currency) if totals.vat else '—' }}</td></tr>
+        {% endif %}
+        <tr class="grand"><td>Total</td><td class="n" id="ni-total">{{ (totals.total ~ ' ' ~ totals.currency) if totals.total else '—' }}</td></tr>
+      </table>
+      {% if not inv.settings.vat_payer %}<div class="small muted" style="margin-top:4px">Not registered for VAT (change under <a href="/invoicing/series">Series &amp; VAT</a>).</div>{% endif %}
+      <div class="small {{ 'warn' if totals.error else 'muted' }}" id="ni-problems" style="margin-top:6px">{% if totals.error %}Still needed before issuing: {{ totals.error }}.{% else %}Ready to be issued.{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="inline" style="margin-top:12px">
+    <button type="submit" name="action" value="issue" id="ni-issue">Issue invoice and add to Income</button>
+    <noscript><button type="submit" name="action" value="totals" class="secondary">Update totals</button></noscript>
+  </div>
+  <div class="small muted" style="margin-top:6px">Issuing gives the invoice the next number of its series, saves its PDF and adds it to Income with the PDF as proof (Income gets the amount without VAT; it counts in the year of the date of payment, or of the invoice date).</div>
+</form>
+<script src="/static/invoicing.js" defer></script>
+{% endblock %}

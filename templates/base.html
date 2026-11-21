@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}PFA tax tracker{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+{% if palette %}<style>:root { color-scheme: {{ 'dark' if palette_dark else 'light' }};
+  --ink: {{ palette.text }}; --muted: {{ palette.muted }}; --line: {{ palette.line }}; --bg: {{ palette.background }};
+  --card: {{ palette.surface }}; --card-alt: {{ palette.surface_alt }}; --accent: {{ palette.accent }};
+  --accent-soft: {{ palette.accent_soft }}; --accent-text: {{ palette.accent_text }}; --bad: {{ palette.bad }};
+  --warn: {{ palette.warn }}; --ok-bg: {{ palette.ok_bg }}; --ok-border: {{ palette.ok_border }};
+  --err-bg: {{ palette.err_bg }}; --err-border: {{ palette.err_border }}; --input-border: {{ palette.input_border }};
+  --code-bg: {{ palette.code_bg }}; }</style>{% endif %}
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <h1>PFA tax tracker</h1>
+      {% if firm.name or firm.cui %}<div class="firm">{{ firm.name }}{% if firm.cui %} · CUI {{ firm.cui }}{% endif %}{% if firm.caen_code %} · CAEN {{ firm.caen_code }}{% endif %}</div>{% endif %}
+      {% if profiles and profiles.enabled %}
+      <div class="profile-name">Profile: <b>{{ profiles.current_name }}</b></div>
+      {% endif %}
+    </div>
+    <nav class="tabs">
+      <a href="/" class="{{ 'on' if page == 'overview' }}">Overview</a>
+      <a href="/income" class="{{ 'on' if page == 'income' }}">Income</a>
+      <a href="/expenses" class="{{ 'on' if page == 'expenses' }}">Expenses</a>
+      <a href="/invoicing" class="{{ 'on' if page == 'invoicing' }}">Invoicing</a>
+      <a href="/settings" class="{{ 'on' if page == 'settings' }}">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+  {% if message %}<div class="msg ok">{{ message }}</div>{% endif %}
+  {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

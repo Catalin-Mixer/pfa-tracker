@@ -1,0 +1,41 @@
+{% extends "invoicing_base.html" %}
+{% from "_macros.html" import delete_button, edit_button %}
+{% block title %}Clients – PFA tax tracker{% endblock %}
+{% block section %}
+{% if inv.clients %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Name</th><th>CUI / tax ID</th><th>Trade register no.</th><th>Address</th><th>Country</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+  <tbody>
+  {% for c in inv.clients %}
+    <tr class="{{ 'editing' if editing and editing.id == c.id }}"><td><b>{{ c.name }}</b></td><td class="d">{{ c.tax_id }}</td><td class="d muted">{{ c.reg_number }}</td>
+      <td>{{ c.address }}, {{ c.city }}</td><td>{{ c.country_name }}</td><td>{{ c.email }}</td><td class="d">{{ c.phone }}</td>
+      <td class="actions">{{ edit_button("/invoicing/clients/" ~ c.id ~ "/edit") }}{{ delete_button("/invoicing/clients/" ~ c.id ~ "/delete", "client") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}
+<div class="empty">No clients yet — add one below.</div>
+{% endif %}
+
+<form class="box" method="post" action="{{ '/invoicing/clients/' ~ editing.id ~ '/edit' if editing else '/invoicing/clients' }}" style="margin-top:14px" id="client-form">
+  <h3>{{ 'Edit client' if editing else 'Add a client' }}</h3>
+  <div class="row wrap">
+    <div style="flex:2 1 260px"><label for="cl-name">Name</label><input id="cl-name" name="name" value="{{ form.name or '' }}" placeholder="e.g. Carpathia Soft SRL" required></div>
+    <div style="flex:1 1 170px"><label for="cl-tax">CUI / tax ID</label><input id="cl-tax" name="tax_id" value="{{ form.tax_id or '' }}" placeholder="e.g. RO14399840" required></div>
+    <div style="flex:1 1 170px"><label for="cl-reg">Trade register no. <span class="muted">(optional)</span></label><input id="cl-reg" name="reg_number" value="{{ form.reg_number or '' }}" placeholder="e.g. J40/1234/2020"></div>
+  </div>
+  <div class="row wrap">
+    <div style="flex:3 1 300px"><label for="cl-address">Address</label><input id="cl-address" name="address" value="{{ form.address or '' }}" placeholder="street, number, building…" required></div>
+    <div style="flex:1 1 150px"><label for="cl-city">City</label><input id="cl-city" name="city" value="{{ form.city or '' }}" required></div>
+    <div style="flex:1 1 170px"><label for="cl-country">Country</label><select id="cl-country" name="country">
+      {% for code, name in inv.countries.items() %}<option value="{{ code }}" {{ 'selected' if (form.country or 'RO') == code }}>{{ name }}</option>{% endfor %}
+    </select></div>
+  </div>
+  <div class="row wrap">
+    <div style="flex:1 1 240px"><label for="cl-email">Email</label><input id="cl-email" type="email" name="email" value="{{ form.email or '' }}" placeholder="billing@example.ro" required></div>
+    <div style="flex:1 1 200px"><label for="cl-phone">Phone <span class="muted">(optional)</span></label><input id="cl-phone" name="phone" value="{{ form.phone or '' }}" placeholder="+40 7xx xxx xxx"></div>
+    <div style="flex:0 0 auto;align-self:flex-end">{% if editing %}<button type="submit">Save changes</button> <a class="button secondary" href="/invoicing/clients">Cancel</a>{% else %}<button type="submit">Add client</button>{% endif %}</div>
+  </div>
+  <div class="small muted" style="margin-top:6px">Romanian clients: CUI (with or without RO) or, for a person, the CNP. Clients from other countries: their VAT or tax number. Changes here do not change invoices already issued.</div>
+</form>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Settings – PFA tax tracker{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Settings{% if profiles.enabled %} — {{ profiles.current_name }}{% endif %}</h2></div>
+{% if profiles.enabled %}
+<div class="box small" style="margin-bottom:18px">
+  <h3>Profiles</h3>
+  <div>Each profile holds one firm with its own settings, invoices, expenses and proofs. The rates file, the CAEN list and the theme are not part of a profile. You are using <b>{{ profiles.current_name }}</b>; switch to another one with its Switch button.</div>
+  <div class="table-wrap" style="margin-top:8px"><table>
+    <thead><tr><th>Profile</th><th>Firm</th><th>CUI</th><th class="n">Invoices</th><th class="n">Expenses</th><th></th><th>Rename</th><th></th></tr></thead>
+    <tbody>
+    {% for p in profiles.profiles %}
+      <tr class="{{ 'on' if p.current }}">
+        <td>{{ p.name }}{% if p.current %} <span class="muted">(in use)</span>{% endif %}</td><td>{{ p.firm }}</td><td>{{ p.cui }}</td>
+        <td class="n">{{ p.invoices }}</td><td class="n">{{ p.expenses }}</td>
+        <td>{% if p.current %}<span class="muted">in use</span>{% else %}<form class="inline" method="post" action="/profile"><input type="hidden" name="profile" value="{{ p.id }}"><input type="hidden" name="page" value="settings"><button class="secondary" type="submit">Switch</button></form>{% endif %}</td>
+        <td><form class="inline" method="post" action="/profiles/{{ p.id }}/rename"><input name="name" value="{{ p.name }}" maxlength="60" style="max-width:180px"><button class="secondary" type="submit">Rename</button></form></td>
+        <td>{% if profiles.profiles|length > 1 %}<form class="inline" method="post" action="/profiles/{{ p.id }}/delete"
+          onsubmit="return confirm({{ ('Delete the profile ' ~ p.name ~ ' with its ' ~ p.invoices ~ ' invoice(s) and ' ~ p.expenses ~ ' expense(s)? A backup of it is saved first.')|tojson|forceescape }})">
+          <input type="hidden" name="confirm" value="1"><button class="danger" type="submit">Delete</button></form>{% else %}<span class="muted">the only profile</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <form class="inline" method="post" action="/profiles/new" style="margin-top:10px">
+    <input name="name" placeholder="Name of the new profile" maxlength="60" required style="max-width:280px">
+    <button type="submit" style="margin:0">Create a profile</button>
+  </form>
+  <div class="muted" style="margin-top:6px">A new profile starts with an empty firm and the tax values of the profile in use. Deleting a profile saves a backup of it first, in the deleted-profiles folder.</div>
+</div>
+{% endif %}
+{% if settings_err and settings_err not in (error or '') %}<div class="msg err">{{ settings_err }}</div>{% endif %}
+
+<form method="post" action="/settings">
+<div class="grid2">
+  <div class="box">
+    <h3>Firm</h3>
+    <label for="name">Name of the firm</label>
+    <input id="name" name="name" value="{{ form.name }}" placeholder="e.g. Popescu Ion PFA">
+    <div class="row">
+      <div><label for="cui">Identification code (CUI)</label>
+        <input id="cui" name="cui" value="{{ form.cui }}" placeholder="12345678 or RO12345678">
+        {% if form.cui %}<div class="small {{ '' if cui_ok else 'warn' }}">{{ 'Check digit is valid.' if cui_ok else 'Check digit does not match.' }}</div>{% endif %}</div>
+      <div><label for="reg">Trade Register number</label>
+        <input id="reg" name="trade_register" value="{{ form.trade_register }}" placeholder="F40/1234/2019"
+               pattern="\s*[Ff]\s*[0-9]{1,2}\s*/\s*[0-9]{1,7}\s*/\s*([0-9]{2}\.[0-9]{2}\.)?[0-9]{4}\s*" title="F, county code, order number, year — e.g. F40/1234/2019">
+        {% if registered %}<div class="small muted">Registered in {{ registered }}.</div>{% endif %}</div>
+    </div>
+    <div class="row">
+      <div><label for="phone">Phone</label><input id="phone" name="phone" type="tel" value="{{ form.phone }}" placeholder="0721 234 567"></div>
+      <div><label for="email">Email</label><input id="email" name="email" type="email" value="{{ form.email }}" placeholder="name@example.ro"></div>
+    </div>
+    <label for="iban">Bank account (IBAN)</label>
+    <input id="iban" name="iban" value="{{ form.iban }}" placeholder="RO49 AAAA 1B31 0075 9384 0000">
+    <label for="address">Address</label>
+    <input id="address" name="address" value="{{ form.address }}" placeholder="Str. Exemplu nr. 1, București, sector 1">
+    <div class="small muted" style="margin-top:6px">All fields are optional; what you fill in must be in a valid format.</div>
+  </div>
+
+  <div>
+    <div class="box">
+      <h3>Activity</h3>
+      <div class="row">
+        <div style="flex:2"><label for="caen">Main activity (CAEN code)</label>
+          <input id="caen" name="caen_code" value="{{ form.caen_code }}" placeholder="e.g. 6210" list="caen-list" maxlength="5"></div>
+        <div><label for="rev">CAEN version</label>
+          <select id="rev" name="caen_revision">
+            <option value="3" {{ 'selected' if rev == '3' }}>Rev.3</option>
+            <option value="2" {{ 'selected' if rev == '2' }}>Rev.2</option>
+          </select></div>
+      </div>
+      <datalist id="caen-list">{% for c in caen.get(rev, {}).values() %}<option value="{{ c.code }}">{{ c.title }}</option>{% endfor %}</datalist>
+      {% if form.caen_code %}
+        {% if caen_entry %}
+          <div class="small" style="margin-top:6px"><b>Rev.{{ rev }} {{ caen_entry.code }}</b> – {{ caen_entry.title }}</div>
+          {% if caen_entry.excluded %}<div class="small warn">Marked as excluded from income tax{% if caen_entry.from_year or caen_entry.to_year %} ({{ caen_entry.from_year or '…' }}–{{ caen_entry.to_year or '…' }}){% endif %}{% if caen_entry.basis %} — {{ caen_entry.basis }}{% endif %}. Income tax is shown as 0 for those years; CAS and CASS are still due.</div>{% endif %}
+        {% else %}
+          <div class="small warn" style="margin-top:6px">{{ form.caen_code }} is not a CAEN Rev.{{ rev }} code in the list{% if caen_other %} — it exists in Rev.{{ caen_other.rev }} ({{ caen_other.title }}); check the version{% endif %}.</div>
+        {% endif %}
+      {% endif %}
+      <label for="caen2">Secondary activities <span class="muted">(optional CAEN codes, separated by commas)</span></label>
+      <input id="caen2" name="secondary_caen" value="{{ form.secondary_caen|join(', ') }}" placeholder="e.g. 6220, 7022">
+      {% if secondary %}<ul class="tight small">{% for s in secondary %}<li>{{ s.code }} – {% if s.entry %}{{ s.entry.title }}{% else %}<span class="warn">not a CAEN Rev.{{ rev }} code in the list</span>{% endif %}</li>{% endfor %}</ul>{% endif %}
+      <div class="small muted">Only the main activity is used for the income tax exclusion check.</div>
+    </div>
+
+    <div class="box" style="margin-top:18px">
+      <h3>Salaried job</h3>
+      <label class="check"><input type="checkbox" name="salaried_now" value="1" {{ 'checked' if salary.get(this_year) }}> I have a salaried job</label>
+      <div class="small muted">Tick it if you are also employed and health-insured through that job. It applies to the current year: the CASS floor then does not apply to the PFA income. Past years are not changed by it.</div>
+      {% if earlier %}
+      <input type="hidden" name="salaried_shown" value="{{ earlier|join(',') }}">
+      <details {{ 'open' if earlier_marked }} style="margin-top:10px">
+        <summary class="small">Earlier years with a salaried job{% if registered %} (the PFA exists since {{ registered }}){% endif %}</summary>
+        <div class="year-checks">
+        {% for y in earlier %}
+        <label class="check"><input type="checkbox" name="salaried_years" value="{{ y }}" {{ 'checked' if salary.get(y) }}> {{ y }}{% if y not in lifetime %} <span class="small warn">outside the PFA's lifetime — ignored</span>{% endif %}</label>
+        {% endfor %}
+        </div>
+        {% if not lifetime %}<div class="small muted">Enter the Trade Register number to mark other years.</div>{% endif %}
+      </details>
+      {% elif registered %}
+      <div class="small muted" style="margin-top:8px">The PFA was registered this year, so there are no earlier years to mark.</div>
+      {% else %}
+      <div class="small muted" style="margin-top:8px">Enter the Trade Register number to mark earlier years: only years since the PFA's registration can be chosen.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<button type="submit">Save settings</button>
+</form>
+
+<h3>Theme</h3>
+<div class="box">
+<form method="post" action="/theme" id="theme-form">
+  <div class="row wrap" style="align-items:flex-end">
+    {% for t in look.themes %}
+    <label class="check" style="flex:0 0 auto"><input type="radio" name="theme" value="{{ t }}" {{ 'checked' if look.theme == t }} onchange="showCustom()"> {{ t|capitalize }}</label>
+    {% endfor %}
+    {% if look.theme == 'custom' and look.saved_name %}<span class="small muted" style="flex:0 0 auto">using the saved theme “{{ look.saved_name }}”</span>{% endif %}
+  </div>
+  <div id="custom-panel" {{ 'hidden' if look.theme != 'custom' }}>
+    <div class="swatches" style="margin-top:10px">
+      {% for key, title in (("accent", "Accent"), ("background", "Background"), ("surface", "Cards and boxes"), ("text", "Text")) %}
+      <label>{{ title }}<input type="color" name="{{ key }}" value="{{ look.colors[key] }}"></label>
+      {% endfor %}
+    </div>
+    <div class="inline" style="margin-top:10px">
+      <input name="saved_name" value="{{ look.theme_name or look.saved_name or '' }}" placeholder="Name, to keep these colours for later" maxlength="40" style="max-width:300px">
+      <button type="submit" name="action" value="save_as" style="margin:0">Save as a theme</button>
+    </div>
+    <div class="small muted" style="margin-top:6px">The text must stay readable on the background and on the cards. Saved themes are offered in the browser and in the desktop app.</div>
+  </div>
+  <button type="submit" name="action" value="apply">Apply theme</button>
+  <div class="small muted" style="margin-top:6px">This theme is for the browser version only; the desktop app has its own.</div>
+</form>
+{% if look.saved %}
+<div id="saved-themes" {{ 'hidden' if look.theme != 'custom' }} style="margin-top:12px">
+  <div class="small"><b>Saved themes</b></div>
+  <table style="margin-top:6px"><tbody>
+  {% for s in look.saved %}
+    <tr class="{{ 'on' if look.saved_name == s.name and look.theme == 'custom' }}">
+      <td>{% for key in ("accent", "background", "surface", "text") %}<span title="{{ key }}" style="display:inline-block;width:14px;height:14px;border:1px solid var(--line);border-radius:3px;background:{{ s.colors[key] }}"></span> {% endfor %}</td>
+      <td>{{ s.name }}</td>
+      <td><form class="inline" method="post" action="/theme/use"><input type="hidden" name="name" value="{{ s.name }}"><button type="submit" style="margin:0">Use</button></form></td>
+      <td><form class="inline" method="post" action="/theme/delete" onsubmit="return confirm('Delete this saved theme?')"><input type="hidden" name="name" value="{{ s.name }}"><button class="danger" type="submit">Delete</button></form></td>
+    </tr>
+  {% endfor %}
+  </tbody></table>
+</div>
+{% endif %}
+</div>
+<script>
+  // the colour choices only show when Custom is chosen (the server hides them the same way)
+  function showCustom() {
+    var custom = document.querySelector('#theme-form input[name=theme][value=custom]').checked;
+    document.getElementById('custom-panel').hidden = !custom;
+    var saved = document.getElementById('saved-themes');
+    if (saved) saved.hidden = !custom;
+  }
+</script>
+
+<h3>Tax values per year</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Year</th><th class="n">Minimum wage</th><th class="n">CAS</th><th class="n">CAS bands</th><th class="n">CASS</th><th class="n">CASS floor – ceiling</th><th class="n">Income tax</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for y in tax_years %}{% set v = y.tax %}
+    <tr><td>{{ y.year }}</td>
+    {% if v %}
+      <td class="n">{{ v.minimum_wage|money }}</td><td class="n">{{ v.cas_rate|pct }}</td><td class="n">{{ v.cas_low_wages|num }} / {{ v.cas_high_wages|num }} wages</td>
+      <td class="n">{{ v.cass_rate|pct }}</td><td class="n">{{ v.cass_floor_wages|num }} – {{ v.cass_ceiling_wages|num }} wages</td><td class="n">{{ v.income_tax_rate|pct }}</td>
+      <td class="small">{% if not y.own %}<span class="warn">no values for {{ y.year }} — uses {{ y.source }}</span>{% elif v.checked %}checked{% else %}<span class="warn">not checked</span>{% endif %}</td>
+    {% else %}
+      <td colspan="7" class="small warn">{{ y.error }}</td>
+    {% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="small muted">These values are edited in <code>{{ settings_path }}</code> (see the README); reload the page to see changes.</p>
+
+<div class="grid2">
+  <div>
+    <h3>CAEN list</h3>
+    <div class="box small">
+      <div>File: <code>{{ caen_path }}</code></div>
+      {% if caen_err %}<div class="msg err" style="margin:8px 0 0">{{ caen_err }}</div>
+      {% else %}
+      <div style="margin-top:4px">{% for r, codes in caen|dictsort|reverse %}Rev.{{ r }}: {{ codes|length }} codes{{ '; ' if not loop.last }}{% endfor %}. {{ caen_excluded|length }} marked as excluded from income tax.</div>
+      {% if caen_excluded %}<ul class="tight">{% for c in caen_excluded %}<li>Rev.{{ c.rev }} {{ c.code }} – {{ c.title }}{% if c.from_year or c.to_year %} ({{ c.from_year or '…' }}–{{ c.to_year or '…' }}){% endif %}{% if c.basis %} — {{ c.basis }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+      {% endif %}
+      <div class="muted" style="margin-top:6px">Open the file in LibreOffice or Excel and write <b>yes</b> in the “Excluded from income tax” column to mark a code. Its “Read me” sheet says where the lists come from.</div>
+    </div>
+  </div>
+  <div>
+    <h3>Exchange rates</h3>
+    <div class="box small">
+      <div>File: <code>{{ rates.path }}</code></div>
+      {% if rates.error %}<div class="msg err" style="margin:8px 0 0">{{ rates.error }}</div>
+      {% else %}
+      <ul class="tight">{% for c in rates.currencies %}<li>{{ c.code }}: {{ c.count }} daily rates, {{ c.first }} to {{ c.last }}</li>{% endfor %}</ul>
+      {% endif %}
+      <div class="muted">Read on every import. Invoices and expenses already stored keep the rate they were converted with.</div>
+    </div>
+  </div>
+</div>
+
+
+
+<h3>Your data, backup and moving to another computer</h3>
+<div class="grid2">
+  <div class="box small">
+    <div>Everything you enter is saved on this computer the moment you save it, and is there again the next time the app starts:</div>
+    <ul class="tight">
+      <li>settings: <code>{{ settings_path }}</code></li>
+      <li>invoices and expenses: <code>{{ db_path }}</code>{% if counts %} ({{ counts.invoices }} invoice(s), {{ counts.expenses }} expense(s)){% endif %}</li>
+      <li>proofs: <code>{{ data_dir }}/attachments/</code></li>
+    </ul>
+    <div style="margin-top:8px"><a href="/backup"><b>Download a backup</b></a> — one zip file with the settings, all invoices and expenses, the proofs, the rates file and the CAEN list.</div>
+    <div class="muted" style="margin-top:4px">Keep it somewhere safe, or copy it to another computer that has the tracker and restore it there.</div>
+  </div>
+  <form class="box small" method="post" action="/restore" enctype="multipart/form-data">
+    <b>Restore a backup</b>
+    <div class="muted">Replaces everything here (settings, invoices, expenses, proofs, clients, products, series, rates, CAEN list) with the backup's content. A copy of the current state is saved in <code>{{ data_dir }}/backups/</code> first.</div>
+    <label for="restore-file">Backup file (.zip)</label>
+    <input id="restore-file" type="file" name="file" accept=".zip,application/zip" required>
+    <label class="check" style="margin-top:8px"><input type="checkbox" name="confirm" value="1"> I understand that everything here will be replaced</label>
+    <button type="submit">Restore</button>
+  </form>
+</div>
+
+<footer>Data: <code>{{ db_path }}</code> · runs fully offline on this machine</footer>
+{% endblock %}
